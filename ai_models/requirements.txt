@@ -1,0 +1,10 @@
+# MedVision AI — AI Models Module Dependencies
+# Step 2: Data Preprocessing & Dataset Splitting
+
+# Core Image & Array Processing
+pillow>=10.2.0
+numpy>=2.0.0
+
+# Future Model Training & Explainability (Step 3+)
+# torch>=2.0.0
+# torchvision>=0.15.0
