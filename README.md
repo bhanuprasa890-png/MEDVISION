@@ -1,17 +1,19 @@
-# MedVision AI — Explainable Medical Imaging Research Assistant
+# MEDVISION — Explainable Medical Imaging Research Assistant
 
-> **Disclaimer:** MedVision AI is an educational and research prototype developed for hackathons and academic inquiry. It is **NOT** a certified medical diagnostic device and must **NEVER** be used for clinical decision-making or real patient diagnosis.
+> **AI-assisted retinal and chest X-ray research application and clinical explainability prototype.**
+> 
+> **Disclaimer:** MedVision AI is an educational and research prototype developed for academic inquiry and laboratory experimentation. It is **NOT** a certified medical diagnostic device and must **NEVER** be used for clinical decision-making or real patient diagnosis.
 
 ---
 
 ## 📌 Project Overview
 
-**MedVision AI** is an open, modular research assistant designed to explore explainable deep learning workflows in medical imaging. The initial milestone establishes a strict four-tier separation of concerns across:
+**MedVision AI** is an open, modular research assistant designed to explore explainable deep learning workflows in medical imaging. The system establishes a strict four-tier separation of concerns across:
 
-1. **Frontend (`frontend/`)**: React + Vite + Tailwind CSS for UI and API client operations.
-2. **Backend (`backend/`)**: Python + FastAPI for asynchronous validation, routing, and metadata tracking.
-3. **Database (`database/`)**: SQLite + SQLAlchemy for anonymous session tracking and metadata storage (no PII or raw medical images stored).
-4. **AI/ML Engine (`ai_models/`)**: Decoupled pipelines for Retinal Fundus and Chest X-Ray (CXR) imaging with dedicated placeholders for preprocessing, inference, and explainability (Grad-CAM).
+1. **Frontend (`frontend/`)**: React 18 + Vite + Tailwind CSS for UI, interactive Grad-CAM visualization, and API client operations.
+2. **Backend (`backend/`)**: Python + FastAPI for asynchronous validation, rate limiting, routing, and metadata tracking.
+3. **Database (`database/`)**: SQLite + SQLAlchemy (WAL mode) for anonymous session tracking and metadata storage (no PII or raw medical images stored).
+4. **AI/ML Engine (`ai_models/`)**: Decoupled pipelines for Retinal Fundus (Diabetic Retinopathy) and Chest Radiographs (18 pathologies) with Grad-CAM visual attribution heatmaps.
 
 ---
 
@@ -24,7 +26,7 @@ MEDVISION/
 │   │   ├── assets/         # Static icons & branding assets
 │   │   ├── components/     # Reusable UI components (Uploader, ResultCard, etc.)
 │   │   ├── hooks/          # Custom hooks (e.g., useImageUpload)
-│   │   ├── pages/          # Application pages (Home, Retina, Chest X-Ray)
+│   │   ├── pages/          # Application pages (Home, Retina, Chest X-Ray, MedAssist)
 │   │   ├── services/       # API client abstractions (fetch wrappers)
 │   │   ├── App.jsx         # App shell & routing
 │   │   ├── main.jsx        # React root mount
@@ -35,32 +37,36 @@ MEDVISION/
 ├── backend/                # Python + FastAPI backend service
 │   ├── app/
 │   │   ├── api/            # API endpoints (/api/health, /api/v1/...)
-│   │   ├── core/           # Configuration, security, and CORS policies
+│   │   ├── core/           # Configuration, security, rate limiting, and CORS
 │   │   ├── db/             # SQLAlchemy engine, base, and models
 │   │   ├── schemas/        # Pydantic request & response validation schemas
-│   │   ├── services/       # File validation & business services
+│   │   ├── services/       # File validation, chat service & model inference
 │   │   └── main.py         # FastAPI application entry point
 │   ├── requirements.txt
 │   └── .env.example
 ├── database/               # Database definitions & initialization scripts
 │   ├── schema.sql          # Raw SQL schema definition with indexes
 │   ├── init_db.py          # SQLite database bootstrapper
+│   ├── migrate_to_postgres.py # PostgreSQL migration engine
 │   └── README.md
 ├── ai_models/              # AI/ML pipelines (preprocessing, inference, XAI)
-│   ├── retina/             # Retinal fundus model pipeline placeholders
-│   ├── chest_xray/         # Chest X-Ray model pipeline placeholders
+│   ├── retina/             # Retinal fundus ResNet-18 pipeline & Grad-CAM
+│   ├── chest_xray/         # Chest X-Ray DenseNet-121 pipeline & Grad-CAM
 │   └── README.md
 ├── docs/                   # Architectural & technical documentation
 │   ├── architecture.md     # Layer separation & data flow diagrams
 │   ├── api-contract.md     # REST endpoints, schemas & error definitions
 │   └── database-design.md  # Schema definitions, privacy & indexing rules
-├── tests/                  # Automated backend and integration test suite
+├── tests/                  # Automated backend and integration test suite (55+ tests)
 │   ├── conftest.py         # Pytest fixtures & TestClient configuration
 │   ├── test_health.py      # Health check endpoint tests
 │   ├── test_file_validation.py # MIME type, size & corruption checks
-│   ├── test_retina_endpoint.py # Retina endpoint placeholder tests
-│   ├── test_chest_xray_endpoint.py # Chest X-Ray endpoint placeholder tests
+│   ├── test_retina_endpoint.py # Retina endpoint & model evaluation tests
+│   ├── test_chest_xray_endpoint.py # Chest X-Ray endpoint tests
+│   ├── test_security_audit.py  # Security, rate limiting & auth tests
+│   ├── test_staging_verification.py # 20-point staging verification suite
 │   └── test_database.py    # Database models & transaction tests
+├── DEPLOYMENT.md           # Production, staging & operational runbooks
 ├── .env.example            # Root environment variable template
 ├── .gitignore              # Multi-tier exclusions (.env, *.db, venv, weights)
 └── README.md               # Project guide and quickstart
@@ -71,8 +77,8 @@ MEDVISION/
 ## 🚀 Quickstart Guide
 
 ### 1. Prerequisites
-- **Node.js**: v18+ (verified with Node.js v24)
-- **Python**: 3.10+ (verified with Python 3.13)
+- **Node.js**: v18+ (tested on Node.js v24)
+- **Python**: 3.10+ (tested on Python 3.13)
 - **pip** / **venv**
 
 ### 2. Backend Setup
@@ -87,11 +93,11 @@ py -m venv venv
 # Install backend dependencies
 pip install -r requirements.txt
 
-# Copy environment file
+# Copy environment template
 cp .env.example .env
 
 # Run the FastAPI server with hot-reload
-uvicorn app.main.py:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000
 ```
 - API Health Endpoint: `http://localhost:8000/api/health`
 - Swagger Interactive Documentation: `http://localhost:8000/docs`
@@ -111,16 +117,19 @@ npm run dev
 
 ### 4. Running the Test Suite
 ```bash
-# Run pytest from the project root or backend directory
-cd backend
-pytest ../tests -v
+# Backend pytest suite (from project root)
+pytest tests/ -v
+
+# Frontend test suite (from frontend directory)
+cd frontend
+npm test
 ```
 
 ---
 
 ## 🔒 Security & Medical Ethics Principles
 
-- **No Medical Guesswork**: Until verified clinical deep learning weights are integrated, analysis endpoints return transparent, honest development placeholder responses (`DEVELOPMENT_PLACEHOLDER`).
-- **Data Privacy (Zero PII)**: We do not store patient names, dates of birth, or hospital identifiers.
-- **Stateless Image Analysis**: Uploaded image bytes are processed strictly in-memory for dimension/hash extraction during this milestone; raw pixel data is never persisted to the database.
-- **Strict CORS**: Cross-Origin Resource Sharing is locked down to local development origins (`http://localhost:5173`, `http://127.0.0.1:5173`) by default.
+- **No Medical Guesswork**: Inference pipelines provide clear class probabilities and visual attribution heatmaps, without fabricated certainty or clinical diagnoses.
+- **Data Privacy (Zero PII)**: No patient names, dates of birth, or hospital identifiers are ever collected or stored.
+- **Stateless Image Analysis**: Uploaded image bytes are processed in-memory for inference and Grad-CAM generation; raw pixel files are never persisted to the database.
+- **Strict CORS & Rate Limiting**: Cross-Origin Resource Sharing is locked down to configured origins, and distributed sliding-window rate limiting prevents API abuse.

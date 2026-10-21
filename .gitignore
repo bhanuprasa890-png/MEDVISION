@@ -1,14 +1,16 @@
-# Python
+# ==============================================================================
+# MEDVISION — Comprehensive Git Ignore Configuration
+# Combines project security boundaries with standard Python/Node/OS rules
+# ==============================================================================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+*.py[codz]
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-backend/venv/
-ENV/
+
+# Distribution / Packaging
 build/
 develop-eggs/
 dist/
@@ -21,38 +23,54 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-.pytest_cache/
-.coverage
-htmlcov/
+MANIFEST
 
-# Node / Frontend
+# PyInstaller & Packaging Specs
+*.manifest
+*.spec
+
+# Python Virtual Environments
+env/
+venv/
+.venv/
+backend/venv/
+ENV/
+env.bak/
+venv.bak/
+.pyenv/
+
+# Node / Frontend Dependencies & Build Outputs
 node_modules/
 frontend/node_modules/
 frontend/dist/
-dist/
 .npm
 .eslintcache
 
-# Logs & Diagnostics
+# Logs, Diagnostics & Installer Outputs
 *.log
 logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Environment Variables & Secrets
+# Environment Variables & Secrets (Keep .env.example templates tracked)
 .env
 .env.*
 *.env
 *.env.*
+.envrc
+.streamlit/secrets.toml
 !.env.example
 !*.env.example
 !**/.env.example
 
-# Certificates, Keys & Credentials
+# Certificates, Private Keys & Secret Tokens
 *.pem
 *.key
 *.crt
@@ -78,6 +96,8 @@ backend/medvision.db*
 database/*.db*
 database/*.sqlite*
 database/*.sqlite3*
+db.sqlite3
+db.sqlite3-journal
 
 # Local Backups, Disposable Copies & Scratch Files
 *.bak
@@ -105,6 +125,69 @@ ai_models/**/*.pkl
 datasets/
 data/raw/
 data/processed/
+
+# Unit Test, Coverage & Analysis Caches
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+*.lcov
+.hypothesis/
+.pytest_cache/
+cover/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Framework Caches & Project Specs
+instance/
+.webassets-cache
+.scrapy
+docs/_build/
+.pybuilder/
+target/
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+.pdm-python
+.pdm-build/
+.pixi/*
+!.pixi/config.toml
+__pypackages__/
+celerybeat-schedule*
+celerybeat.pid
+*.rdb
+*.aof
+*.pid
+mnesia/
+rabbitmq/
+rabbitmq-data/
+activemq-data/
+*.sage.py
+.spyderproject
+.spyproject
+.ropeproject
+/site
+cython_debug/
+.abstra/
+tempCodeRunnerFile.py
+.pypirc
+marimo/_static/
+marimo/_lsp/
+__marimo__/
 
 # IDE & OS Artifacts
 .vscode/
